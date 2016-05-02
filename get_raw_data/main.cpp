@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
                               << ",acc_Z:" << std::setw(5) << std::fixed << std::setprecision(2) << acceleration[2]
                     ;
 
-                    // Convert packet to euler
+                    // Get gyro calibrated measurements
                     XsVector gyro = packet.calibratedGyroscopeData();
                     std::cout << ",gyro_X:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[0]
                               << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[1]
