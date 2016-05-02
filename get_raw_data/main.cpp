@@ -129,9 +129,11 @@ int main(int argc, char* argv[])
             {
                 XsOutputConfiguration acc(XDI_Acceleration, 1000);
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurn, 1000);
+                XsOutputConfiguration time(XDI_SampleTimeFine, 1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
+                configArray.push_back(time);
                 if (!device.setOutputConfiguration(configArray))
                 {
 
@@ -162,7 +164,7 @@ int main(int argc, char* argv[])
                         exit(1);
                     }
                     else
-                        data_file << "acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                        data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
             }
             std::cin.clear();
 
@@ -200,6 +202,10 @@ int main(int argc, char* argv[])
                         packet.setDeviceId(mtPort.deviceId());
                     }
 
+                    //Get timestamp
+                    uint32_t timestamp = packet.sampleTimeFine();
+                    std::cout << ",timestamp :   " << timestamp;
+
                     // Get the quaternion data
                     XsVector acceleration = packet.calibratedAcceleration();
                     std::cout << "\r"
@@ -217,7 +223,7 @@ int main(int argc, char* argv[])
 
                     if(data_file) //save data
                     {
-                        data_file << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
+                        data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
                     }
                     std::cout << std::flush;
                 }
