@@ -40,6 +40,8 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string>
+#include <fstream>
+#include <cstdlib>
 
 #ifdef __GNUC__
 #include "conio.h" // for non ANSI _kbhit() and _getch()
@@ -102,6 +104,10 @@ int main(int argc, char* argv[])
 
         try
         {
+            //variable needed to store data
+            std::ofstream data_file;
+            std::string fileName;
+
             // Print information about detected MTi / MTx / MTmk4 device
             std::cout << "Device: " << device.getProductCode().toStdString() << " opened." << std::endl;
 
@@ -137,6 +143,28 @@ int main(int argc, char* argv[])
             {
                 throw std::runtime_error("Unknown device while configuring. Aborting.");
             }
+
+            //export data to csv ?
+            bool export_csv = false;
+            std::cout << "Do you ant to export data to csv ? (1 = Yes, else = No)";
+            if(!(std::cin >> export_csv) || export_csv==false){
+                std::cout << "Not exporting data" << std::endl;
+            }
+            else{
+                std::cout << "Enter the file name : ";
+                std::cin >> fileName;
+                data_file.open(fileName.c_str());
+
+                //error checking
+                    if (!data_file)
+                    {
+                        std::cerr << "File could not be opened." << std::endl;
+                        exit(1);
+                    }
+                    else
+                        data_file << "acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+            }
+            std::cin.clear();
 
             // Put the device in measurement mode
             std::cout << "Putting device into measurement mode..." << std::endl;
@@ -187,14 +215,23 @@ int main(int argc, char* argv[])
                               << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[2]
                     ;
 
+                    if(data_file) //save data
+                    {
+                        data_file << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
+                    }
                     std::cout << std::flush;
                 }
                 msgs.clear();
                 XsTime::msleep(0);
             }
-            _getch();
+            _getch(); // user pressed a key to exit
             std::cout << "\n" << std::string(79, '-') << "\n";
             std::cout << std::endl;
+            //close file if opened
+            if(data_file){
+                data_file.close();
+                std::cout << "data exported to " << fileName << std::endl;
+            }
         }
         catch (std::runtime_error const & error)
         {
