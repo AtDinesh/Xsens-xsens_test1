@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
             //For MTi-1 series this condition will be used
             else if (mtPort.deviceId().isMtMk4() || mtPort.deviceId().isFmt_X000())
             {
-                XsOutputConfiguration acc(XDI_Acceleration, 1000);
+                XsOutputConfiguration acc(XDI_Acceleration, 500);
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurn, 1000);
                 XsOutputConfiguration time(XDI_SampleTimeFine, 1000);
                 XsOutputConfigurationArray configArray;
@@ -202,28 +202,51 @@ int main(int argc, char* argv[])
                         packet.setDeviceId(mtPort.deviceId());
                     }
 
+                    /*XsMessage msg = packet.toMessage();
+                    XsSize msg_size = msg.getTotalMessageSize();
+                    XsXbusMessageId msg_Id = msg.getMessageId();
+                    uint8_t msg_data_byte = msg.getDataByte();
+                    float msg_float = msg.getDataFloat();
+
+                    std::cout << "Total size is : " << msg_size << std::endl;
+                    std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;*/
+
                     //Get timestamp
-                    uint32_t timestamp = packet.sampleTimeFine();
-                    std::cout << ",timestamp :   " << timestamp;
+                    /*uint32_t timestamp = packet.sampleTimeFine();
+                    std::cout << ",timestamp :   " << timestamp;*/
 
                     // Get the quaternion data
                     XsVector acceleration = packet.calibratedAcceleration();
+                    //std::cout << "number of item in packet : " << packet.itemCount() << std::endl;
+                    //XsUShortVector acceleration = packet.rawAcceleration();
+
+                    for(int it=0; it<=2; it++){
+                    acceleration[it] = acceleration[it]/9.81;
+                    }
+
                     std::cout << "\r"
-                              << "acc_X:" << std::setw(5) << std::fixed << std::setprecision(2) << acceleration[0]
-                              << ",acc_Y:" << std::setw(5) << std::fixed << std::setprecision(2) << acceleration[1]
-                              << ",acc_Z:" << std::setw(5) << std::fixed << std::setprecision(2) << acceleration[2]
+                              << "acc_X:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[0]
+                              << ",acc_Y:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[1]
+                              << ",acc_Z:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[2]
                     ;
 
                     // Get gyro calibrated measurements
                     XsVector gyro = packet.calibratedGyroscopeData();
-                    std::cout << ",gyro_X:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[0]
-                              << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[1]
-                              << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(2) << gyro[2]
+                    //XsUShortVector gyro = packet.rawGyroscopeData();
+
+                    for(int it=0; it<=2; it++){
+                    gyro[it] = gyro[it]*180.0/3.1415;
+                    }
+
+                    std::cout << ",gyro_X:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[0]
+                              << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[1]
+                              << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[2]
                     ;
 
                     if(data_file) //save data
                     {
-                        data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
+                        //data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
+                        //data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << std::endl;
                     }
                     std::cout << std::flush;
                 }
