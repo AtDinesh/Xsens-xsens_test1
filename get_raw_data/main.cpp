@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
-                configArray.push_back(time);
+                //configArray.push_back(time);
                 if (!device.setOutputConfiguration(configArray))
                 {
 
@@ -250,6 +250,12 @@ int main(int argc, char* argv[])
                     /*uint32_t timestamp = packet.sampleTimeFine();
                     std::cout << ",timestamp :   " << timestamp;*/
 
+                    if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
+                        imu_msg.header.stamp = timestamp;
+                    }
+                    else{
+                        imu_msg.header.stamp = ros::Time::now();
+                    }
                     // Get the quaternion data
                     XsVector acceleration = packet.calibratedAcceleration();
                     //std::cout << "number of item in packet : " << packet.itemCount() << std::endl;
@@ -290,14 +296,7 @@ int main(int argc, char* argv[])
 					 	imu_msg.angular_velocity.z = (float)gyro[2];
                     }
 
-                    if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
-                        imu_msg.header.stamp = timestamp;
-                        imu_publi.publish(imu_msg);
-                    }
-                    else{
-                        imu_msg.header.stamp = ros::Time::now();
-                        imu_publi.publish(imu_msg);
-                    }
+                    imu_publi.publish(imu_msg);
 
                     if(data_file) //save data
                     {
