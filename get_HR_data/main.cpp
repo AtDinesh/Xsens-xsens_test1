@@ -32,6 +32,10 @@ last modified
 Author : Dinesh Atchuthan
 */
 
+// ROS includes
+#include "ros/ros.h"
+#include <sensor_msgs/Imu.h>
+
 #include <xsens/xsportinfoarray.h>
 #include <xsens/xsdatapacket.h>
 #include <xsens/xstime.h>
@@ -156,8 +160,31 @@ void extract_accgyro(std::string data_string,std::vector<double>& dest){
    #endif
 }
 
+ros::Time timestamp;
+
 int main(int argc, char* argv[])
 {
+
+    ros::init(argc, argv, "mti");
+
+	ros::NodeHandle node("~");
+
+	std::string portName;
+	std::string topicName;
+
+	uint8_t n = 0;
+
+
+	if (node.getParam("port_name", portName)==false)
+	{
+		ROS_INFO("Error, parameter 'port_name' required.");
+		return -1;
+	}
+	if(portName == "/dev/0") return 0;
+
+	topicName = ros::this_node::getName();
+    ros::Publisher imu_publi = node.advertise<sensor_msgs::Imu>(topicName+"/imu", 1000);
+
     DeviceClass device;
 
     try
@@ -300,6 +327,9 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
+
+            sensor_msgs::Imu imu_msg;
+
             while (!_kbhit())
             {
                 device.readDataToBuffer(data);
@@ -363,6 +393,7 @@ int main(int argc, char* argv[])
                     Acceleration.reserve(3); //clear leaves the vector with size 0 --> need to reallocate
                     Gyroscope.reserve(3);
 
+                    // First we get timestamp
                     if(packet.containsSampleTimeCoarse())
                         timestamp = packet.sampleTimeCoarse();
                     else if(packet.containsSampleTimeFine())
@@ -372,7 +403,7 @@ int main(int argc, char* argv[])
                         timestamp = static_cast<unsigned int>(elapsed_seconds.count());
                     }
 
-
+                    //Get Acceleration Data if available
                     if(msg_map.find("4040") !=  msg_map.end()){
                         extract_accgyro(msg_map["4040"], Acceleration);
                         for(int it=0; it<=2; it++){
@@ -394,6 +425,13 @@ int main(int argc, char* argv[])
                         }
                     }
 
+                    if(Acceleration.size()!=0){
+                        imu_msg.linear_acceleration.x = (float)Acceleration[0];
+           				imu_msg.linear_acceleration.y = (float)Acceleration[1];
+           				imu_msg.linear_acceleration.z = (float)Acceleration[2];
+                    }
+                    
+                    //Get Gyroscope data is available
                     if(msg_map.find("8040") !=  msg_map.end()){
                         extract_accgyro(msg_map["8040"], Gyroscope);
                         for(int it=0; it<=2; it++){
@@ -418,6 +456,22 @@ int main(int argc, char* argv[])
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
 
+                    if(Gyroscope.size()!=0){
+                        imu_msg.angular_velocity.x = (float)Gyroscope[0];
+					 	imu_msg.angular_velocity.y = (float)Gyroscope[1];
+					 	imu_msg.angular_velocity.z = (float)Gyroscope[2];
+                    }
+
+                    //Publish data on ROSTOPIC
+                    if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
+                        imu_msg.header.stamp = timestamp;
+                        imu_publi.publish(imu_msg);
+                    }
+                    else{
+                        imu_publi.publish(imu_msg);
+                    }
+
+                    //save data to file if configured by user
                     if(data_file_acc && data_file_gyro) //save data
                     {
                         if(Acceleration.size() != 0){
@@ -450,10 +504,12 @@ int main(int argc, char* argv[])
         catch (...)
         {
             std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
+            ROS_INFO("An unknown fatal error has occured. Aborting.");
         }
 
         // Close port
         std::cout << "Closing port..." << std::endl;
+        ROS_INFO("Closing port...");
         device.close();
     }
     catch (std::runtime_error const & error)
