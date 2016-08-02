@@ -42,6 +42,7 @@
 #include <string>
 #include <fstream>
 #include <cstdlib>
+#include <unordered_map>
 
 #ifdef __GNUC__
 #include "conio.h" // for non ANSI _kbhit() and _getch()
@@ -72,6 +73,33 @@ void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
     while(msg_begin < str_msg.size()-2){ //-2 CHECK_SUM byte
         unsigned int x = strtoul(str_msg.substr(msg_begin+len_pos, 2).c_str(), NULL, 16);
         dest.push_back(str_msg.substr(msg_begin,4+(x*2)));
+        msg_begin = msg_begin + 4+(x*2);
+    }
+}
+
+void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::string> &dest){
+    dest.clear();
+    int len_pos = 12;
+    int msg_begin = 8;
+    uint32_t msg_size = src.getTotalMessageSize();
+    XsString msg_b = src.toHexString();
+
+    std::string str_msg = msg_b.toStdString();
+    str_msg.erase(std::remove(str_msg.begin(), str_msg.end(), ' '), str_msg.end());
+    //msg format : |PRE|BID|DATA_FORMAT(MT_DATA2))|LEN_TOTAL_MSG|MID|LEN|DATA|MID|LEN|DATA|....|MID|LEN|DATA|CS|
+    //              1   2       3                      4         5-6   7  ... 
+    // we want to sparse the incoming message and put the different XsString in a vector in order to compute then easily
+    // 1 byte -> ex FF =~ 0xFF ==> 2 characters needed
+
+    if (dest.size()==0){
+        unsigned int x = strtoul(str_msg.substr(len_pos, 2).c_str(), NULL, 16);
+        dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+4,x*2)));
+        msg_begin = len_pos+2+(x*2);
+        len_pos = 4;
+    }
+    while(msg_begin < str_msg.size()-2){ //-2 CHECK_SUM byte
+        unsigned int x = strtoul(str_msg.substr(msg_begin+len_pos, 2).c_str(), NULL, 16);
+        dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+4,x*2)));
         msg_begin = msg_begin + 4+(x*2);
     }
 }
@@ -243,8 +271,11 @@ int main(int argc, char* argv[])
                     std::cout << "msg_b: " << msg_b << std::endl;
                     
                     std::vector<std::string> msg_vect;
+                    std::unordered_map<std::string,std::string> msg_map;
                     split_xsmessage_string(msg, msg_vect);
-
+                    split_xsmessage_map(msg, msg_map);
+                    
+                    std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
                     //Get timestamp
                     /*uint32_t timestamp = packet.sampleTimeFine();
