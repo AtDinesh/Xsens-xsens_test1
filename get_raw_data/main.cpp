@@ -72,12 +72,13 @@ int main(int argc, char* argv[])
 	uint8_t n = 0;
 
 
-	if (node.getParam("port_name", portName)==false)
+	/*if (node.getParam("port_name", portName)==false)
 	{
-		ROS_INFO("Error, parameter 'port_name' required.");
-		return -1;
+		//ROS_INFO("Error, parameter 'port_name' required.");
+		//return -1;
+        portName = "/dev/ttyUSB0";
 	}
-	if(portName == "/dev/0") return 0;
+	if(portName == "/dev/0") return 0;*/
 
 	topicName = ros::this_node::getName();
     ros::Publisher imu_publi = node.advertise<sensor_msgs::Imu>(topicName+"/imu", 1000);
