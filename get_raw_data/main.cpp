@@ -31,6 +31,10 @@ last modified
 Author : Dinesh Atchuthan
 */
 
+// ROS includes
+#include "ros/ros.h"
+#include <sensor_msgs/Imu.h>
+
 #include <xsens/xsportinfoarray.h>
 #include <xsens/xsdatapacket.h>
 #include <xsens/xstime.h>
@@ -53,8 +57,31 @@ Author : Dinesh Atchuthan
 #include <conio.h>
 #endif
 
+ros::Time timestamp;
+
 int main(int argc, char* argv[])
 {
+
+    ros::init(argc, argv, "mti");
+
+	ros::NodeHandle node("~");
+
+	std::string portName;
+	std::string topicName;
+
+	uint8_t n = 0;
+
+
+	if (node.getParam("port_name", portName)==false)
+	{
+		ROS_INFO("Error, parameter 'port_name' required.");
+		return -1;
+	}
+	if(portName == "/dev/0") return 0;
+
+	topicName = ros::this_node::getName();
+    ros::Publisher imu_publi = node.advertise<sensor_msgs::Imu>(topicName+"/imu", 1000);
+
     DeviceClass device;
 
     try
@@ -184,6 +211,9 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
+
+            sensor_msgs::Imu imu_msg;
+
             while (!_kbhit())
             {
                 device.readDataToBuffer(data);
@@ -234,6 +264,12 @@ int main(int argc, char* argv[])
                               << ",acc_Z:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[2]
                     ;
 
+                    if(packet.containsCalibratedAcceleration()){
+                        imu_msg.linear_acceleration.x = (float)acceleration[0];
+           				imu_msg.linear_acceleration.y = (float)acceleration[1];
+           				imu_msg.linear_acceleration.z = (float)acceleration[2];
+                    }
+                    
                     // Get gyro calibrated measurements
                     XsVector gyro = packet.calibratedGyroscopeData();
                     //XsUShortVector gyro = packet.rawGyroscopeData();
@@ -246,6 +282,20 @@ int main(int argc, char* argv[])
                               << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[1]
                               << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[2]
                     ;
+
+                    if(packet.containsCalibratedGyroscopeData()){
+                        imu_msg.angular_velocity.x = (float)gyro[0];
+					 	imu_msg.angular_velocity.y = (float)gyro[1];
+					 	imu_msg.angular_velocity.z = (float)gyro[2];
+                    }
+
+                    if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
+                        imu_msg.header.stamp = timestamp;
+                        imu_publi.publish(imu_msg);
+                    }
+                    else{
+                        imu_publi.publish(imu_msg);
+                    }
 
                     if(data_file) //save data
                     {
@@ -273,10 +323,12 @@ int main(int argc, char* argv[])
         catch (...)
         {
             std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
+            ROS_INFO("An unknown fatal error has occured. Aborting.");
         }
 
         // Close port
         std::cout << "Closing port..." << std::endl;
+        ROS_INFO("Closing port...");
         device.close();
     }
     catch (std::runtime_error const & error)
