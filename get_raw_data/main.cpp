@@ -49,6 +49,33 @@
 #include <conio.h>
 #endif
 
+void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
+    dest.clear();
+    int len_pos = 12;
+    int msg_begin = 8;
+    uint32_t msg_size = src.getTotalMessageSize();
+    XsString msg_b = src.toHexString();
+
+    std::string str_msg = msg_b.toStdString();
+    str_msg.erase(std::remove(str_msg.begin(), str_msg.end(), ' '), str_msg.end());
+    //msg format : |PRE|BID|DATA_FORMAT(MT_DATA2))|LEN_TOTAL_MSG|MID|LEN|DATA|MID|LEN|DATA|....|MID|LEN|DATA|CS|
+    //              1   2       3                      4         5-6   7  ... 
+    // we want to sparse the incoming message and put the different XsString in a vector in order to compute then easily
+    // 1 byte -> ex FF =~ 0xFF ==> 2 characters needed
+
+    if (dest.size()==0){
+        unsigned int x = strtoul(str_msg.substr(len_pos, 2).c_str(), NULL, 16);
+        dest.push_back(str_msg.substr(msg_begin,len_pos+4+(x*2)-msg_begin)); //+4 for MID
+        msg_begin = len_pos+2+(x*2);
+        len_pos = 4;
+    }
+    while(msg_begin < str_msg.size()-2){ //-2 CHECK_SUM byte
+        unsigned int x = strtoul(str_msg.substr(msg_begin+len_pos, 2).c_str(), NULL, 16);
+        dest.push_back(str_msg.substr(msg_begin,4+(x*2)));
+        msg_begin = msg_begin + 4+(x*2);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     DeviceClass device;
@@ -202,15 +229,23 @@ int main(int argc, char* argv[])
                         packet.setDeviceId(mtPort.deviceId());
                     }
 
-                    /*XsMessage msg = packet.toMessage();
+                    XsMessage msg = packet.toMessage();
                     XsSize msg_size = msg.getTotalMessageSize();
                     XsXbusMessageId msg_Id = msg.getMessageId();
                     uint8_t msg_data_byte = msg.getDataByte();
                     float msg_float = msg.getDataFloat();
+                    XsString msg_b = msg.toHexString();                                        
+                    
 
                     std::cout << "Total size is : " << msg_size << std::endl;
-                    std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;*/
+                    std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
+                    std::cout << "msg_Id : " << msg_Id << std::endl;
+                    std::cout << "msg_b: " << msg_b << std::endl;
+                    
+                    std::vector<std::string> msg_vect;
+                    split_xsmessage_string(msg, msg_vect);
 
+                    //std::cout << "number of messages : " << msg_vect.size() << std::endl;
                     //Get timestamp
                     /*uint32_t timestamp = packet.sampleTimeFine();
                     std::cout << ",timestamp :   " << timestamp;*/
