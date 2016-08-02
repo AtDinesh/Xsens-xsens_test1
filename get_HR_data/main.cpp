@@ -27,6 +27,10 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+last modified
+Author : Dinesh Atchuthan
+*/
 
 #include <xsens/xsportinfoarray.h>
 #include <xsens/xsdatapacket.h>
