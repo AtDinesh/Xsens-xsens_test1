@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
                     }
 
                     XsMessage msg = packet.toMessage();
-                    XsSize msg_size = msg.getTotalMessageSize();
+                    /*XsSize msg_size = msg.getTotalMessageSize();
                     XsXbusMessageId msg_Id = msg.getMessageId();
                     uint8_t msg_data_byte = msg.getDataByte();
                     float msg_float = msg.getDataFloat();
@@ -268,14 +268,14 @@ int main(int argc, char* argv[])
                     std::cout << "Total size is : " << msg_size << std::endl;
                     std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
                     std::cout << "msg_Id : " << msg_Id << std::endl;
-                    std::cout << "msg_b: " << msg_b << std::endl;
+                    std::cout << "msg_b: " << msg_b << std::endl;*/
                     
-                    std::vector<std::string> msg_vect;
+                    //std::vector<std::string> msg_vect;
                     std::unordered_map<std::string,std::string> msg_map;
-                    split_xsmessage_string(msg, msg_vect);
+                    //split_xsmessage_string(msg, msg_vect);
                     split_xsmessage_map(msg, msg_map);
                     
-                    std::cout << "number of messages in map : " << msg_map.size() << std::endl;
+                    //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
                     //Get timestamp
                     /*uint32_t timestamp = packet.sampleTimeFine();
