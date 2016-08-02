@@ -468,6 +468,7 @@ int main(int argc, char* argv[])
                         imu_publi.publish(imu_msg);
                     }
                     else{
+                        timestamp = ros::Time::now();
                         imu_publi.publish(imu_msg);
                     }
 
