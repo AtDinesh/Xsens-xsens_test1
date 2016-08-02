@@ -368,7 +368,6 @@ int main(int argc, char* argv[])
                         uint8_t msg_data_byte = msg.getDataByte();
                         float msg_float = msg.getDataFloat();
                         XsString msg_b = msg.toHexString();                                        
-                    
 
                         std::cout << "Total size is : " << msg_size << std::endl;
                         std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
@@ -462,6 +461,7 @@ int main(int argc, char* argv[])
 					 	imu_msg.angular_velocity.y = (float)Gyroscope[1];
 					 	imu_msg.angular_velocity.z = (float)Gyroscope[2];
                     }
+
 
                     //Publish data on ROSTOPIC
                     if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
