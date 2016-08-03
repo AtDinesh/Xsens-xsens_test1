@@ -112,19 +112,19 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
     }
     while(msg_begin < str_msg.size()-2){ //-2 CHECK_SUM byte
         unsigned int x = strtoul(str_msg.substr(msg_begin+len_pos, 2).c_str(), NULL, 16);
-        std::cout << "size of data to order : " << x << std::endl;
-        printf("x = %d\n", x);
+        //std::cout << "size of data to order : " << x << std::endl;
+        //printf("x = %d\n", x);
         dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+6,(int)x*2)));
         msg_begin = msg_begin +6+(x*2);
     }
 }
 
-void extract_accgyro(std::string data_string,std::vector<double> &dest){
+void extract_accgyro(std::string data_string,std::vector<double>& dest){
     // std::stringstream not working because we need IEEE754 convention... that is also used by compiler
     // we take profit of the fact that most compiler use this convention and we use a union to convert data but makes the conversion COMPILER DEPENDANT
     if (data_string.length() != 24)
         std::cout << "wrong size for data : " << data_string.length() << std::endl;
-    std::cout << "data : " << data_string << std::endl;
+    //std::cout << "data : " << data_string << std::endl;
 
     char c[11];
     for(int i = 0; i<3; i++){
@@ -136,9 +136,10 @@ void extract_accgyro(std::string data_string,std::vector<double> &dest){
     //std::cout << "hex value: " << hex_value << std::endl;
     my_union.num = hex_value;
     //printf("%f\n", (my_union.fnum)/9.81);
-    dest[i] = (my_union.fnum)/9.81000;
+    dest.push_back(my_union.fnum);
     }
-    std::cout << "\tdest[0]=" << dest[0] << "\tdest[1]=" << dest[1] << "\tdest[2]=" << dest[2] << std::endl; 
+
+    //std::cout << "\tdest[0]=" << dest.at(0) << "\tdest[1]=" << dest.at(1) << "\tdest[2]=" << dest.at(2) << std::endl; 
 }
 
 int main(int argc, char* argv[])
@@ -223,8 +224,8 @@ int main(int argc, char* argv[])
             {
                 XsOutputConfiguration acc(XDI_AccelerationHR, 1000);
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
-                //XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
-                XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
+                XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
+                //XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
@@ -265,8 +266,8 @@ int main(int argc, char* argv[])
                     }
                     else{
                         //data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
-                        data_file_acc << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << std::endl;
-                        data_file_gyro << "Timestamp" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                        data_file_acc << "Timestamp (ms E-10)" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << std::endl;
+                        data_file_gyro << "Timestamp (ms E-10)" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
                     }
             }
             std::cin.clear();
@@ -288,7 +289,7 @@ int main(int argc, char* argv[])
                 device.readDataToBuffer(data);
                 device.processBufferedData(data, msgs);
 
-                std::vector<double> Acceleration(3), Gyroscope(3);
+                std::vector<double> Acceleration(3,0), Gyroscope(3,0);
                 uint32_t timestamp=0;
                 std::chrono::time_point<std::chrono::system_clock> start, current;
                 start = std::chrono::system_clock::now();
@@ -341,6 +342,8 @@ int main(int argc, char* argv[])
                     // string 8040 : RateOfTurnHR
                     Acceleration.clear();
                     Gyroscope.clear();
+                    Acceleration.reserve(3); //clear leaves the vector with size 0 --> need to reallocate
+                    Gyroscope.reserve(3);
 
                     if(packet.containsSampleTimeCoarse())
                         timestamp = packet.sampleTimeCoarse();
@@ -394,6 +397,8 @@ int main(int argc, char* argv[])
                         }
                     }
 
+                    //std::cout << "\nAcceleration size : " << Acceleration.size() << " Gyroscope size : " << Gyroscope.size() << std::endl;
+                    //std::cout << "is vector empty ? : " << Acceleration.empty() << std::endl;
                     
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
@@ -451,7 +456,7 @@ int main(int argc, char* argv[])
             if(data_file_acc && data_file_gyro){
                 data_file_acc.close();
                 data_file_gyro.close();
-                std::cout << "data exported to " << fileName_acc << "and " << fileName_gyro << std::endl;
+                std::cout << "data exported to " << fileName_acc << " and " << fileName_gyro << std::endl;
             }
         }
         catch (std::runtime_error const & error)
