@@ -52,11 +52,12 @@
 #include <conio.h>
 #endif
 
-union{
+union{ //BEWARE : THIS MAKES THE CONVERSION COMPILER DEPENDANT !!
     int num;
     float fnum;
 } my_union;
 
+//split the message in strings for further analyze
 void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
     dest.clear();
     int len_pos = 12;
@@ -71,6 +72,7 @@ void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
     // we want to sparse the incoming message and put the different XsString in a vector in order to compute then easily
     // 1 byte -> ex FF =~ 0xFF ==> 2 characters needed
 
+    //the structure of the first packet contained in the message is already known
     if (dest.size()==0){
         unsigned int x = strtoul(str_msg.substr(len_pos, 2).c_str(), NULL, 16);
         dest.push_back(str_msg.substr(msg_begin,len_pos+4+(x*2)-msg_begin)); //+4 for MID
@@ -84,6 +86,7 @@ void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
     }
 }
 
+//split the message in an unordered_map for further analyze. Main advantage : easy access to data (values) using MID (key string)
 void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::string> &dest){
     dest.clear();
     int len_pos = 12;
@@ -98,6 +101,7 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
     // we want to sparse the incoming message and put the different XsString in a vector in order to compute then easily
     // 1 byte -> ex FF =~ 0xFF ==> 2 characters needed
 
+    //the structure of the first packet contained in the message is already known
     if (dest.size()==0){
         unsigned int x = strtoul(str_msg.substr(len_pos, 2).c_str(), NULL, 16);
         dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+4,x*2)));
@@ -115,7 +119,7 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
 
 void extract_accgyro(std::string data_string,std::vector<double> &dest){
     // std::stringstream not working because we need IEEE754 convention... that is also used by compiler
-    // we take profit of the fact that most compiler use this convention and we use a union to convert data
+    // we take profit of the fact that most compiler use this convention and we use a union to convert data but makes the conversion COMPILER DEPENDANT
     if (data_string.length() != 24)
         std::cout << "wrong size for data : " << data_string.length() << std::endl;
     std::cout << "data : " << data_string << std::endl;
@@ -289,7 +293,7 @@ int main(int argc, char* argv[])
                     }
 
                     XsMessage msg = packet.toMessage();
-                    
+
                     /*XsSize msg_size = msg.getTotalMessageSize();
                     XsXbusMessageId msg_Id = msg.getMessageId();
                     uint8_t msg_data_byte = msg.getDataByte();
@@ -307,9 +311,11 @@ int main(int argc, char* argv[])
                     //split_xsmessage_string(msg, msg_vect);
                     split_xsmessage_map(msg, msg_map);
 
-                    // string 1060 : timestamp
+                    // string 1060 : timestamp (SampleTimeFine)
                     // string 4020 : Acceleration
-                    // string 8020 : Gyroscope
+                    // string 8020 : RateOfTurn
+                    // string 4040 : AccelerationHR
+                    // string 8040 : RateOfTurnHR
                     std::vector<double> Acceleration(3);
                     /*if(msg_map.find("4040") !=  msg_map.end())
                         extract_accgyro(msg_map["4040"], Acceleration);
