@@ -326,10 +326,18 @@ int main(int argc, char* argv[])
                     Acceleration.clear();
                     Gyroscope.clear();
 
-                    if(msg_map.find("4040") !=  msg_map.end())
+                    if(msg_map.find("4040") !=  msg_map.end()){
                         extract_accgyro(msg_map["4040"], Acceleration);
-                    else if(packet.containsCalibratedAcceleration())
+                        for(int it=0; it<=2; it++){
+                            Acceleration[it] = Acceleration[it]/9.81;
+                        }
+                    }
+                    else if(packet.containsCalibratedAcceleration()){
                         Acceleration = (packet.calibratedAcceleration()).toVector();
+                        for(int it=0; it<=2; it++){
+                            Acceleration[it] = Acceleration[it]/9.81;
+                        }
+                    }
                     else if(packet.containsRawAcceleration()){
                         XsUShortVector xs_Acceleration = packet.rawAcceleration();
                         if(xs_Acceleration.size()==3){
@@ -339,10 +347,18 @@ int main(int argc, char* argv[])
                         }
                     }
 
-                    if(msg_map.find("8040") !=  msg_map.end())
+                    if(msg_map.find("8040") !=  msg_map.end()){
                         extract_accgyro(msg_map["8040"], Gyroscope);
-                    else if(packet.containsCalibratedGyroscopeData())
+                        for(int it=0; it<=2; it++){
+                            Gyroscope[it] = Gyroscope[it]*180.0/3.14159265359;
+                        }
+                    }
+                    else if(packet.containsCalibratedGyroscopeData()){
                         Gyroscope = (packet.calibratedGyroscopeData()).toVector();
+                        for(int it=0; it<=2; it++){
+                            Gyroscope[it] = Gyroscope[it]*180.0/3.14159265359;
+                        }
+                    }
                     else if(packet.containsRawGyroscopeData()){
                         XsUShortVector xs_Gyroscope = packet.rawGyroscopeData();
                         if(xs_Gyroscope.size()==3){
