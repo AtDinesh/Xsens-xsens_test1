@@ -43,12 +43,19 @@
 #include <fstream>
 #include <cstdlib>
 #include <unordered_map>
+#include <bitset>
+#include <sstream>
 
 #ifdef __GNUC__
 #include "conio.h" // for non ANSI _kbhit() and _getch()
 #else
 #include <conio.h>
 #endif
+
+union{
+    int num;
+    float fnum;
+} my_union;
 
 void split_xsmessage_string(XsMessage &src, std::vector<std::string> &dest){
     dest.clear();
@@ -99,10 +106,103 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
     }
     while(msg_begin < str_msg.size()-2){ //-2 CHECK_SUM byte
         unsigned int x = strtoul(str_msg.substr(msg_begin+len_pos, 2).c_str(), NULL, 16);
-        dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+4,x*2)));
-        msg_begin = msg_begin + 4+(x*2);
+        std::cout << "size of data to order : " << x << std::endl;
+        printf("x = %d\n", x);
+        dest.insert(std::make_pair<std::string,std::string>(str_msg.substr(msg_begin,4),str_msg.substr(msg_begin+6,(int)x*2)));
+        msg_begin = msg_begin +6+(x*2);
     }
 }
+
+void extract_accgyro(std::string data_string,std::vector<double> &dest){
+    int extract = 0;
+    uint32_t udata32;
+    float dataf;
+    if (data_string.length() != 24)
+        std::cout << "wrong size for data : " << data_string.length() << std::endl;
+    std::cout << "data : " << data_string << std::endl;
+
+    dest[0] = strtod(data_string.substr(0, 8).c_str(), NULL);
+    std::cout << "Acc 0 extraction : " << dest[0] << std::endl;
+
+    int a;
+    std::stringstream ss;
+    ss << std::hex << "0xFFFEFFFE";
+    ss >> a;
+    std::cout << "output : " << static_cast<int>(a) << std::endl;
+
+    my_union.num = a;
+    printf("%f\n", my_union.fnum);
+
+    std::string s = "fffefffe";
+    double x = (int)std::stol(data_string.substr(0, 8).c_str(), nullptr, 16);
+
+    std::cout << "output2 : " << static_cast<double>(x) << std::endl;
+
+    const char *hexString = "7FFEA5"; //Just to show the conversion of a bigger hex number
+    unsigned int hexNumber; //In case your hex number is going to be sufficiently big.
+    sscanf(hexString, "%x", &hexNumber);
+    std::cout << "hexNumber : " << hexNumber << std::endl;
+
+    char c[11];
+    strcpy(c,"0x");
+    strcat(c, data_string.substr(0, 8).c_str());
+    std::cout << "strcat : " << c << std::endl;
+
+    float d;
+    /*int i = atoi( c );
+    std::cout << "atoi : " << i <<std::endl;
+    my_union.num = i;
+    printf("%f\n", my_union.fnum);*/
+
+    long hex_value = std::strtol(c,0,16);
+    std::cout << "hex value: " << hex_value << std::endl;
+    my_union.num = hex_value;
+    printf("%f\n", (my_union.fnum)/9.81);
+
+    /*float datax;
+    std::stringstream ss;
+    ss << std::hex << data_string;
+    ss >> datax;
+    dest[0] = reinterpret_cast<float&>(datax);
+    std::cout << "result : " << dest[0] << std::endl;*/
+    
+    std::reverse(data_string.begin(), data_string.end());
+    std::cout << "reverse : " << data_string << std::endl;
+    std::istringstream(data_string) >> std::hex >> d;
+    std::cout << "converted : " << d << std::endl;
+
+}
+
+/*float f_IEEEtoPIC(int32_t f)
+{
+   float ret;
+   std::bitset<32> f_b(f);
+   int16_t temp;
+   memcpy(&temp, ((int8_t*)&f)+2, 2);
+{
+   float ret;
+   std::bitset<32> f_b(f);
+   int16_t temp;
+   temp = ((temp << 1) & 0xFF00) + (temp & 0xFF);
+{
+   float ret;
+   std::bitset<32> f_b(f);
+   int16_t temp;
+   //if(bit_test(f, 31))
+{
+   float ret;
+   std::bitset<32> f_b(f);
+   int16_t temp;
+   if(f[(std::size_t)31])      // Test the sign bit
+      temp |= 0x0080;
+   else
+      temp &= 0xFF7F;
+   memcpy(((int8_t*)&ret)+3, ((int8_t*)&f)     , 1);
+   memcpy(((int8_t*)&ret)+2, ((int8_t*)&f)+1   , 1);
+   memcpy(((int8_t*)&ret)+1, ((int8_t*)&temp)  , 1);
+   memcpy(((int8_t*)&ret)  , ((int8_t*)&temp)+1, 1);
+   return ret;
+}*/
 
 int main(int argc, char* argv[])
 {
@@ -258,7 +358,7 @@ int main(int argc, char* argv[])
                     }
 
                     XsMessage msg = packet.toMessage();
-                    /*XsSize msg_size = msg.getTotalMessageSize();
+                    XsSize msg_size = msg.getTotalMessageSize();
                     XsXbusMessageId msg_Id = msg.getMessageId();
                     uint8_t msg_data_byte = msg.getDataByte();
                     float msg_float = msg.getDataFloat();
@@ -268,12 +368,20 @@ int main(int argc, char* argv[])
                     std::cout << "Total size is : " << msg_size << std::endl;
                     std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
                     std::cout << "msg_Id : " << msg_Id << std::endl;
-                    std::cout << "msg_b: " << msg_b << std::endl;*/
+                    std::cout << "msg_b: " << msg_b << std::endl;
                     
                     //std::vector<std::string> msg_vect;
                     std::unordered_map<std::string,std::string> msg_map;
                     //split_xsmessage_string(msg, msg_vect);
                     split_xsmessage_map(msg, msg_map);
+
+                    // string 1060 : timestamp
+                    // string 4020 : Acceleration
+                    // string 8020 : Gyroscope
+                    std::vector<double> Acceleration(3);
+                    extract_accgyro(msg_map["4020"], Acceleration);
+
+
                     
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
