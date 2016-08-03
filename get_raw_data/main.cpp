@@ -134,7 +134,7 @@ void extract_accgyro(std::string data_string,std::vector<double> &dest){
     //std::cout << "hex value: " << hex_value << std::endl;
     my_union.num = hex_value;
     //printf("%f\n", (my_union.fnum)/9.81);
-    dest[i] = (my_union.fnum)/9.81;
+    dest[i] = (my_union.fnum)/9.81000;
     }
     std::cout << "\tdest[0]=" << dest[0] << "\tdest[1]=" << dest[1] << "\tdest[2]=" << dest[2] << std::endl; 
 }
@@ -219,7 +219,8 @@ int main(int argc, char* argv[])
             {
                 XsOutputConfiguration acc(XDI_AccelerationHR, 1000);
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
-                XsOutputConfiguration time(XDI_SampleTimeFine, 1000);
+                //XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
+                XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
@@ -274,6 +275,9 @@ int main(int argc, char* argv[])
             {
                 device.readDataToBuffer(data);
                 device.processBufferedData(data, msgs);
+
+                std::vector<double> Acceleration(3), Gyroscope(3);
+                uint32_t timestamp=0;
                 for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
                 {
                     // Retrieve a packet
@@ -311,15 +315,48 @@ int main(int argc, char* argv[])
                     //split_xsmessage_string(msg, msg_vect);
                     split_xsmessage_map(msg, msg_map);
 
-                    // string 1060 : timestamp (SampleTimeFine)
+                    /// Get acceleration, rateofturn and timestamp data
+
+                    // string 1060 : timestamp (SampleTimeFine) time in 10KHz ticks
+                    // string 1070 : Timestamp (SampleTimeCoarse) time im seconds
                     // string 4020 : Acceleration
                     // string 8020 : RateOfTurn
                     // string 4040 : AccelerationHR
                     // string 8040 : RateOfTurnHR
-                    std::vector<double> Acceleration(3);
-                    /*if(msg_map.find("4040") !=  msg_map.end())
+                    Acceleration.clear();
+                    Gyroscope.clear();
+
+                    if(msg_map.find("4040") !=  msg_map.end())
                         extract_accgyro(msg_map["4040"], Acceleration);
-                    else std::cout << "key 4040 not found" << std::endl;*/
+                    else if(packet.containsCalibratedAcceleration())
+                        Acceleration = (packet.calibratedAcceleration()).toVector();
+                    else if(packet.containsRawAcceleration()){
+                        XsUShortVector xs_Acceleration = packet.rawAcceleration();
+                        if(xs_Acceleration.size()==3){
+                            Acceleration[0] = xs_Acceleration[0];
+                            Acceleration[1] = xs_Acceleration[1];
+                            Acceleration[2] = xs_Acceleration[2];//XsUShortVector always have size 3
+                        }
+                    }
+
+                    if(msg_map.find("8040") !=  msg_map.end())
+                        extract_accgyro(msg_map["8040"], Gyroscope);
+                    else if(packet.containsCalibratedGyroscopeData())
+                        Gyroscope = (packet.calibratedGyroscopeData()).toVector();
+                    else if(packet.containsRawGyroscopeData()){
+                        XsUShortVector xs_Gyroscope = packet.rawGyroscopeData();
+                        if(xs_Gyroscope.size()==3){
+                            Gyroscope[0] = xs_Gyroscope[0];
+                            Gyroscope[1] = xs_Gyroscope[1];
+                            Gyroscope[2] = xs_Gyroscope[2]; //XsUShortVector always have size 3
+                        }
+                    }
+
+                    if(packet.containsSampleTimeCoarse())
+                        timestamp = packet.sampleTimeCoarse();
+                    else if(packet.containsSampleTimeFine())
+                        timestamp = packet.sampleTimeFine();
+
                     
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
