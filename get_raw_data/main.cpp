@@ -46,6 +46,8 @@
 #include <bitset>
 #include <sstream>
 
+#include <chrono>
+
 #ifdef __GNUC__
 #include "conio.h" // for non ANSI _kbhit() and _getch()
 #else
@@ -278,6 +280,8 @@ int main(int argc, char* argv[])
 
                 std::vector<double> Acceleration(3), Gyroscope(3);
                 uint32_t timestamp=0;
+                std::chrono::time_point<std::chrono::system_clock> time1, time2;
+
                 for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
                 {
                     // Retrieve a packet
@@ -326,6 +330,13 @@ int main(int argc, char* argv[])
                     Acceleration.clear();
                     Gyroscope.clear();
 
+                    if(packet.containsSampleTimeCoarse())
+                        timestamp = packet.sampleTimeCoarse();
+                    else if(packet.containsSampleTimeFine())
+                        timestamp = packet.sampleTimeFine();
+                    else  time1 = std::chrono::system_clock::now();
+
+
                     if(msg_map.find("4040") !=  msg_map.end()){
                         extract_accgyro(msg_map["4040"], Acceleration);
                         for(int it=0; it<=2; it++){
@@ -367,11 +378,6 @@ int main(int argc, char* argv[])
                             Gyroscope[2] = xs_Gyroscope[2]; //XsUShortVector always have size 3
                         }
                     }
-
-                    if(packet.containsSampleTimeCoarse())
-                        timestamp = packet.sampleTimeCoarse();
-                    else if(packet.containsSampleTimeFine())
-                        timestamp = packet.sampleTimeFine();
 
                     
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
