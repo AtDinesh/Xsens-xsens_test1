@@ -213,8 +213,8 @@ int main(int argc, char* argv[])
             //For MTi-1 series this condition will be used
             else if (mtPort.deviceId().isMtMk4() || mtPort.deviceId().isFmt_X000())
             {
-                XsOutputConfiguration acc(XDI_Acceleration, 500);
-                XsOutputConfiguration rate_of_turn(XDI_RateOfTurn, 1000);
+                XsOutputConfiguration acc(XDI_AccelerationHR, 1000);
+                XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
                 XsOutputConfiguration time(XDI_SampleTimeFine, 1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
@@ -310,9 +310,9 @@ int main(int argc, char* argv[])
                     // string 4020 : Acceleration
                     // string 8020 : Gyroscope
                     std::vector<double> Acceleration(3);
-                    extract_accgyro(msg_map["4020"], Acceleration);
-
-
+                    /*if(msg_map.find("4040") !=  msg_map.end())
+                        extract_accgyro(msg_map["4040"], Acceleration);
+                    else std::cout << "key 4040 not found" << std::endl;*/
                     
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
@@ -320,7 +320,7 @@ int main(int argc, char* argv[])
                     /*uint32_t timestamp = packet.sampleTimeFine();
                     std::cout << ",timestamp :   " << timestamp;*/
 
-                    // Get the quaternion data
+                    /*// Get the quaternion data
                     XsVector acceleration = packet.calibratedAcceleration();
                     //std::cout << "number of item in packet : " << packet.itemCount() << std::endl;
                     //XsUShortVector acceleration = packet.rawAcceleration();
@@ -346,7 +346,7 @@ int main(int argc, char* argv[])
                     std::cout << ",gyro_X:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[0]
                               << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[1]
                               << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[2]
-                    ;
+                    ;*/
 
                     if(data_file) //save data
                     {
