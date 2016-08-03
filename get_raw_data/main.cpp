@@ -280,10 +280,12 @@ int main(int argc, char* argv[])
 
                 std::vector<double> Acceleration(3), Gyroscope(3);
                 uint32_t timestamp=0;
-                std::chrono::time_point<std::chrono::system_clock> time1, time2;
+                std::chrono::time_point<std::chrono::system_clock> start, current;
+                start = std::chrono::system_clock::now();
 
                 for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
                 {
+                    current = std::chrono::system_clock::now();
                     // Retrieve a packet
                     XsDataPacket packet;
                     if ((*it).getMessageId() == XMID_MtData) {
@@ -334,7 +336,10 @@ int main(int argc, char* argv[])
                         timestamp = packet.sampleTimeCoarse();
                     else if(packet.containsSampleTimeFine())
                         timestamp = packet.sampleTimeFine();
-                    else  time1 = std::chrono::system_clock::now();
+                    else {
+                        std::chrono::duration<double> elapsed_seconds = current-start;
+                        timestamp = static_cast<unsigned int>(elapsed_seconds.count());
+                    }
 
 
                     if(msg_map.find("4040") !=  msg_map.end()){
