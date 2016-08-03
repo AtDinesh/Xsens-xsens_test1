@@ -114,95 +114,26 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
 }
 
 void extract_accgyro(std::string data_string,std::vector<double> &dest){
-    int extract = 0;
-    uint32_t udata32;
-    float dataf;
+    // std::stringstream not working because we need IEEE754 convention... that is also used by compiler
+    // we take profit of the fact that most compiler use this convention and we use a union to convert data
     if (data_string.length() != 24)
         std::cout << "wrong size for data : " << data_string.length() << std::endl;
     std::cout << "data : " << data_string << std::endl;
 
-    dest[0] = strtod(data_string.substr(0, 8).c_str(), NULL);
-    std::cout << "Acc 0 extraction : " << dest[0] << std::endl;
-
-    int a;
-    std::stringstream ss;
-    ss << std::hex << "0xFFFEFFFE";
-    ss >> a;
-    std::cout << "output : " << static_cast<int>(a) << std::endl;
-
-    my_union.num = a;
-    printf("%f\n", my_union.fnum);
-
-    std::string s = "fffefffe";
-    double x = (int)std::stol(data_string.substr(0, 8).c_str(), nullptr, 16);
-
-    std::cout << "output2 : " << static_cast<double>(x) << std::endl;
-
-    const char *hexString = "7FFEA5"; //Just to show the conversion of a bigger hex number
-    unsigned int hexNumber; //In case your hex number is going to be sufficiently big.
-    sscanf(hexString, "%x", &hexNumber);
-    std::cout << "hexNumber : " << hexNumber << std::endl;
-
     char c[11];
+    for(int i = 0; i<3; i++){
     strcpy(c,"0x");
-    strcat(c, data_string.substr(0, 8).c_str());
-    std::cout << "strcat : " << c << std::endl;
-
-    float d;
-    /*int i = atoi( c );
-    std::cout << "atoi : " << i <<std::endl;
-    my_union.num = i;
-    printf("%f\n", my_union.fnum);*/
+    strcat(c, data_string.substr(i*8, 8).c_str());
+    //std::cout << "strcat : " << c << std::endl;
 
     long hex_value = std::strtol(c,0,16);
-    std::cout << "hex value: " << hex_value << std::endl;
+    //std::cout << "hex value: " << hex_value << std::endl;
     my_union.num = hex_value;
-    printf("%f\n", (my_union.fnum)/9.81);
-
-    /*float datax;
-    std::stringstream ss;
-    ss << std::hex << data_string;
-    ss >> datax;
-    dest[0] = reinterpret_cast<float&>(datax);
-    std::cout << "result : " << dest[0] << std::endl;*/
-    
-    std::reverse(data_string.begin(), data_string.end());
-    std::cout << "reverse : " << data_string << std::endl;
-    std::istringstream(data_string) >> std::hex >> d;
-    std::cout << "converted : " << d << std::endl;
-
+    //printf("%f\n", (my_union.fnum)/9.81);
+    dest[i] = (my_union.fnum)/9.81;
+    }
+    std::cout << "\tdest[0]=" << dest[0] << "\tdest[1]=" << dest[1] << "\tdest[2]=" << dest[2] << std::endl; 
 }
-
-/*float f_IEEEtoPIC(int32_t f)
-{
-   float ret;
-   std::bitset<32> f_b(f);
-   int16_t temp;
-   memcpy(&temp, ((int8_t*)&f)+2, 2);
-{
-   float ret;
-   std::bitset<32> f_b(f);
-   int16_t temp;
-   temp = ((temp << 1) & 0xFF00) + (temp & 0xFF);
-{
-   float ret;
-   std::bitset<32> f_b(f);
-   int16_t temp;
-   //if(bit_test(f, 31))
-{
-   float ret;
-   std::bitset<32> f_b(f);
-   int16_t temp;
-   if(f[(std::size_t)31])      // Test the sign bit
-      temp |= 0x0080;
-   else
-      temp &= 0xFF7F;
-   memcpy(((int8_t*)&ret)+3, ((int8_t*)&f)     , 1);
-   memcpy(((int8_t*)&ret)+2, ((int8_t*)&f)+1   , 1);
-   memcpy(((int8_t*)&ret)+1, ((int8_t*)&temp)  , 1);
-   memcpy(((int8_t*)&ret)  , ((int8_t*)&temp)+1, 1);
-   return ret;
-}*/
 
 int main(int argc, char* argv[])
 {
