@@ -197,8 +197,10 @@ int main(int argc, char* argv[])
         try
         {
             //variable needed to store data
-            std::ofstream data_file;
-            std::string fileName;
+            std::ofstream data_file_acc;
+            std::ofstream data_file_gyro;
+            std::string fileName_acc;
+            std::string fileName_gyro;
 
             // Print information about detected MTi / MTx / MTmk4 device
             std::cout << "Device: " << device.getProductCode().toStdString() << " opened." << std::endl;
@@ -247,17 +249,25 @@ int main(int argc, char* argv[])
             }
             else{
                 std::cout << "Enter the file name : ";
-                std::cin >> fileName;
-                data_file.open(fileName.c_str());
+                std::cin >> fileName_acc;
+                fileName_gyro = fileName_acc;
+                fileName_acc.append("_acc");
+                fileName_gyro.append("_gyro");
+
+                data_file_acc.open(fileName_acc.c_str());
+                data_file_gyro.open(fileName_gyro.c_str());
 
                 //error checking
-                    if (!data_file)
+                    if (!data_file_acc || !data_file_gyro )
                     {
                         std::cerr << "File could not be opened." << std::endl;
                         exit(1);
                     }
-                    else
-                        data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                    else{
+                        //data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                        data_file_acc << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << std::endl;
+                        data_file_gyro << "Timestamp" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                    }
             }
             std::cin.clear();
 
@@ -419,10 +429,15 @@ int main(int argc, char* argv[])
                               << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[2]
                     ;*/
 
-                    if(data_file) //save data
+                    if(data_file_acc && data_file_gyro) //save data
                     {
+                        if(Acceleration.size() != 0){
                         //data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
-                        //data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << std::endl;
+                        data_file_acc << timestamp << ";" << Acceleration[0] << ";" << Acceleration[1] << ";" << Acceleration[2] << "\n";
+                        }
+                        if(Gyroscope.size() != 0){
+                        data_file_gyro << timestamp << ";" << Gyroscope[0] << ";" << Gyroscope[1] << ";" << Gyroscope[2] << "\n";
+                        }
                     }
                     std::cout << std::flush;
                 }
@@ -433,9 +448,10 @@ int main(int argc, char* argv[])
             std::cout << "\n" << std::string(79, '-') << "\n";
             std::cout << std::endl;
             //close file if opened
-            if(data_file){
-                data_file.close();
-                std::cout << "data exported to " << fileName << std::endl;
+            if(data_file_acc && data_file_gyro){
+                data_file_acc.close();
+                data_file_gyro.close();
+                std::cout << "data exported to " << fileName_acc << "and " << fileName_gyro << std::endl;
             }
         }
         catch (std::runtime_error const & error)
