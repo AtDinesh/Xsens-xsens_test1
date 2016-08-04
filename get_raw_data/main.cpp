@@ -54,6 +54,8 @@
 #include <conio.h>
 #endif
 
+//#define DEBUG
+
 union{ //BEWARE : THIS MAKES THE CONVERSION COMPILER DEPENDANT !!
     int num;
     float fnum;
@@ -96,8 +98,9 @@ void split_xsmessage_map(XsMessage &src, std::unordered_map<std::string, std::st
     uint32_t msg_size = src.getTotalMessageSize();
     XsString msg_b = src.toHexString();
 
-    std::string str_msg = msg_b.toStdString();
-    str_msg.erase(std::remove(str_msg.begin(), str_msg.end(), ' '), str_msg.end());
+    std::string str_msg = msg_b.toStdString(); 
+    str_msg.erase(std::remove(str_msg.begin(), str_msg.end(), ' '), str_msg.end()); //every byte is seperated by space charactr in string 
+    //suppress all the ' ' for easier data extraction.
     //msg format : |PRE|BID|DATA_FORMAT(MT_DATA2))|LEN_TOTAL_MSG|MID|LEN|DATA|MID|LEN|DATA|....|MID|LEN|DATA|CS|
     //              1   2       3                      4         5-6   7  ... 
     // we want to sparse the incoming message and put the different XsString in a vector in order to compute then easily
@@ -123,8 +126,10 @@ void extract_accgyro(std::string data_string,std::vector<double>& dest){
     // std::stringstream not working because we need IEEE754 convention... that is also used by compiler
     // we take profit of the fact that most compiler use this convention and we use a union to convert data but makes the conversion COMPILER DEPENDANT
     if (data_string.length() != 24)
-        std::cout << "wrong size for data : " << data_string.length() << std::endl;
-    //std::cout << "data : " << data_string << std::endl;
+        std::cout << "data tybe nat not be IEEE754 float, wrong size for data : " << data_string.length() << std::endl;
+    #ifdef DEBUG
+        std::cout << "data : " << data_string << std::endl;
+    #endif
 
     char c[11];
     for(int i = 0; i<3; i++){
@@ -133,13 +138,17 @@ void extract_accgyro(std::string data_string,std::vector<double>& dest){
     //std::cout << "strcat : " << c << std::endl;
 
     long hex_value = std::strtol(c,0,16);
-    //std::cout << "hex value: " << hex_value << std::endl;
+    #ifdef DEBUG
+        std::cout << "hex value: " << hex_value << std::endl;
+    #endif
     my_union.num = hex_value;
     //printf("%f\n", (my_union.fnum)/9.81);
     dest.push_back(my_union.fnum);
     }
 
-    //std::cout << "\tdest[0]=" << dest.at(0) << "\tdest[1]=" << dest.at(1) << "\tdest[2]=" << dest.at(2) << std::endl; 
+    #ifdef DEBUG
+        std::cout << "\tdest[0]=" << dest.at(0) << "\tdest[1]=" << dest.at(1) << "\tdest[2]=" << dest.at(2) << std::endl; 
+   #endif
 }
 
 int main(int argc, char* argv[])
@@ -315,18 +324,20 @@ int main(int argc, char* argv[])
 
                     XsMessage msg = packet.toMessage();
 
-                    /*XsSize msg_size = msg.getTotalMessageSize();
-                    XsXbusMessageId msg_Id = msg.getMessageId();
-                    uint8_t msg_data_byte = msg.getDataByte();
-                    float msg_float = msg.getDataFloat();
-                    XsString msg_b = msg.toHexString();                                        
+                    #ifdef DEBUG
+                        XsSize msg_size = msg.getTotalMessageSize();
+                        XsXbusMessageId msg_Id = msg.getMessageId();
+                        uint8_t msg_data_byte = msg.getDataByte();
+                        float msg_float = msg.getDataFloat();
+                        XsString msg_b = msg.toHexString();                                        
                     
 
-                    std::cout << "Total size is : " << msg_size << std::endl;
-                    std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
-                    std::cout << "msg_Id : " << msg_Id << std::endl;
-                    std::cout << "msg_b: " << msg_b << std::endl;*/
-                    
+                        std::cout << "Total size is : " << msg_size << std::endl;
+                        std::cout << "Data_Byte : " << std::hex << +msg_data_byte << std::endl;
+                        std::cout << "msg_Id : " << msg_Id << std::endl;
+                        std::cout << "msg_b: " << msg_b << std::endl;
+                    #endif
+
                     //std::vector<std::string> msg_vect;
                     std::unordered_map<std::string,std::string> msg_map;
                     //split_xsmessage_string(msg, msg_vect);
@@ -397,9 +408,6 @@ int main(int argc, char* argv[])
                         }
                     }
 
-                    //std::cout << "\nAcceleration size : " << Acceleration.size() << " Gyroscope size : " << Gyroscope.size() << std::endl;
-                    //std::cout << "is vector empty ? : " << Acceleration.empty() << std::endl;
-                    
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
                     //Get timestamp
