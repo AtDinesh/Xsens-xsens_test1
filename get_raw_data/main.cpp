@@ -410,37 +410,6 @@ int main(int argc, char* argv[])
 
                     //std::cout << "number of messages in map : " << msg_map.size() << std::endl;
                     //std::cout << "number of messages : " << msg_vect.size() << std::endl;
-                    //Get timestamp
-                    /*uint32_t timestamp = packet.sampleTimeFine();
-                    std::cout << ",timestamp :   " << timestamp;*/
-
-                    /*// Get the quaternion data
-                    XsVector acceleration = packet.calibratedAcceleration();
-                    //std::cout << "number of item in packet : " << packet.itemCount() << std::endl;
-                    //XsUShortVector acceleration = packet.rawAcceleration();
-
-                    for(int it=0; it<=2; it++){
-                    acceleration[it] = acceleration[it]/9.81;
-                    }
-
-                    std::cout << "\r"
-                              << "acc_X:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[0]
-                              << ",acc_Y:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[1]
-                              << ",acc_Z:" << std::setw(5) << std::fixed << std::setprecision(3) << acceleration[2]
-                    ;
-
-                    // Get gyro calibrated measurements
-                    XsVector gyro = packet.calibratedGyroscopeData();
-                    //XsUShortVector gyro = packet.rawGyroscopeData();
-
-                    for(int it=0; it<=2; it++){
-                    gyro[it] = gyro[it]*180.0/3.1415;
-                    }
-
-                    std::cout << ",gyro_X:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[0]
-                              << ",gyro_Y:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[1]
-                              << ",gyro_Z:" << std::setw(7) << std::fixed << std::setprecision(3) << gyro[2]
-                    ;*/
 
                     if(data_file_acc && data_file_gyro) //save data
                     {
