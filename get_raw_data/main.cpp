@@ -236,10 +236,12 @@ int main(int argc, char* argv[])
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
                 XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
                 //XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
+                XsOutputConfiguration triggerIn1(XDI_TriggerIn1,1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
                 configArray.push_back(time);
+                configArray.push_back(triggerIn1);
                 if (!device.setOutputConfiguration(configArray))
                 {
 
