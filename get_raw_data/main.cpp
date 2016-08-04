@@ -266,8 +266,8 @@ int main(int argc, char* argv[])
                     }
                     else{
                         //data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
-                        data_file_acc << "Timestamp (ms E-10)" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << std::endl;
-                        data_file_gyro << "Timestamp (ms E-10)" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
+                        data_file_acc << "Timestamp(ms E-10)\t" <<"acc_X\t" << "acc_Y\t" << "acc_Z\t" << std::endl;
+                        data_file_gyro << "Timestamp(ms E-10)\t" << "gyro_X\t" << "gyro_Y\t" << "gyro_Z\t" << std::endl;
                     }
             }
             std::cin.clear();
@@ -438,10 +438,10 @@ int main(int argc, char* argv[])
                     {
                         if(Acceleration.size() != 0){
                         //data_file << timestamp << ";" << acceleration[0] << ";" << acceleration[1] << ";" << acceleration[2] << ";" << gyro[0] << ";" << gyro[1] << ";" << gyro[2] << std::endl;
-                        data_file_acc << timestamp << ";" << Acceleration[0] << ";" << Acceleration[1] << ";" << Acceleration[2] << "\n";
+                        data_file_acc << timestamp << "\t" << Acceleration[0] << "\t" << Acceleration[1] << "\t" << Acceleration[2] << "\n";
                         }
                         if(Gyroscope.size() != 0){
-                        data_file_gyro << timestamp << ";" << Gyroscope[0] << ";" << Gyroscope[1] << ";" << Gyroscope[2] << "\n";
+                        data_file_gyro << timestamp << "\t" << Gyroscope[0] << "\t" << Gyroscope[1] << "\t" << Gyroscope[2] << "\n";
                         }
                     }
                     std::cout << std::flush;
