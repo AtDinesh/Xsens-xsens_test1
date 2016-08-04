@@ -368,6 +368,12 @@ int main(int argc, char* argv[])
                         timestamp = static_cast<unsigned int>(elapsed_seconds.count());
                     }
 
+                    if(packet.containsTriggerIndication()){
+                        std::cout << "Trigger indication received at : " << timestamp << std::endl;
+                        //here we could launch a thread that would take care of getting data from camera through firewire
+                        // or we can use ROS to get the data
+                    }
+
 
                     if(msg_map.find("4040") !=  msg_map.end()){
                         extract_accgyro(msg_map["4040"], Acceleration);
