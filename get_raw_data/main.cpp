@@ -1,5 +1,6 @@
 /*	Copyright (c) 2003-2015 Xsens Technologies B.V. or subsidiaries worldwide.
     All rights reserved.
+    last modified by : Dinesh ATCHUTHAN - LAAS-CNRS - 04/08/16
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
