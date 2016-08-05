@@ -143,7 +143,7 @@ void extract_accgyro(std::string data_string,std::vector<double>& dest){
         std::cout << "hex value: " << hex_value << std::endl;
     #endif
     my_union.num = hex_value;
-    //printf("%f\n", (my_union.fnum)/9.81);
+    //printf("%f\n", (my_union.fnum));
     dest.push_back(my_union.fnum);
     }
 
@@ -236,7 +236,6 @@ int main(int argc, char* argv[])
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
                 XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
                 //XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
-                XsOutputConfiguration triggerIn1(XDI_TriggerIn1,1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
@@ -368,24 +367,12 @@ int main(int argc, char* argv[])
                         timestamp = static_cast<unsigned int>(elapsed_seconds.count());
                     }
 
-                    if(packet.containsTriggerIndication()){
-                        std::cout << "Trigger indication received at : " << timestamp << std::endl;
-                        //here we could launch a thread that would take care of getting data from camera through firewire
-                        // or we can use ROS to get the data
-                    }
-
 
                     if(msg_map.find("4040") !=  msg_map.end()){
                         extract_accgyro(msg_map["4040"], Acceleration);
-                        for(int it=0; it<=2; it++){
-                            Acceleration[it] = Acceleration[it]/9.81;
-                        }
                     }
                     else if(packet.containsCalibratedAcceleration()){
                         Acceleration = (packet.calibratedAcceleration()).toVector();
-                        for(int it=0; it<=2; it++){
-                            Acceleration[it] = Acceleration[it]/9.81;
-                        }
                     }
                     else if(packet.containsRawAcceleration()){
                         XsUShortVector xs_Acceleration = packet.rawAcceleration();
@@ -398,15 +385,9 @@ int main(int argc, char* argv[])
 
                     if(msg_map.find("8040") !=  msg_map.end()){
                         extract_accgyro(msg_map["8040"], Gyroscope);
-                        for(int it=0; it<=2; it++){
-                            Gyroscope[it] = Gyroscope[it]*180.0/3.14159265359;
-                        }
                     }
                     else if(packet.containsCalibratedGyroscopeData()){
                         Gyroscope = (packet.calibratedGyroscopeData()).toVector();
-                        for(int it=0; it<=2; it++){
-                            Gyroscope[it] = Gyroscope[it]*180.0/3.14159265359;
-                        }
                     }
                     else if(packet.containsRawGyroscopeData()){
                         XsUShortVector xs_Gyroscope = packet.rawGyroscopeData();
