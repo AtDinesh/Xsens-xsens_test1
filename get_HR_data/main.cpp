@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
                 configArray.push_back(time);
-                configArray.push_back(triggerIn1);
+                //configArray.push_back(triggerIn1);
                 if (!device.setOutputConfiguration(configArray))
                 {
 
