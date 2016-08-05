@@ -465,7 +465,7 @@ int main(int argc, char* argv[])
 
                     //Publish data on ROSTOPIC
                     if(packet.containsSampleTimeFine() || packet.containsSampleTimeCoarse()){
-                        imu_msg.header.stamp = timestamp;
+                        imu_msg.header.stamp.nsec = timestamp;
                         imu_publi.publish(imu_msg);
                     }
                     else{
