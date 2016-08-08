@@ -358,6 +358,18 @@ int main(int argc, char* argv[])
                     // string 8040 : RateOfTurnHR
                     // string 4810 : XDI_TriggerIn1
 	                // string 4820 : XDI_TriggerIn2
+                    // string 0xE020 : XDI_StatusWord 
+                    //      bit 8 Clipflag Acc X : If set an out of range acceleration on the X axis is detected
+                    //      bit 9 Clipflag Acc Y : If set an out of range acceleration on the Y axis is detected
+                    //      bit 10 Clipflag Acc Z : If set an out of range acceleration on the Z axis is detected
+                    //      bit 11 Clipflag Gyr X : If set an out of range angular velocity on the X axis is detected
+                    //      bit 12 Clipflag Gyr Y : If set an out of range angular velocity on the Y axis is detected
+                    //      bit 13 Clipflag Gyr Z : If set an out of range angular velocity on the Z axis is detected
+                    //      bit 19 Clipping indication : This flag indicates going out of range of one of the sensors 
+                                //(is set when one or more bits from 8:16 are set)
+                    //      bit 21 SyncIn Marker : When a SyncIn is detected, this bit will rise to 1
+                    //      bit 22 SyncOut Marker : When SyncOut is active this bit will rise to 1
+                    
                     Acceleration.clear();
                     Gyroscope.clear();
                     Acceleration.reserve(3); //clear leaves the vector with size 0 --> need to reallocate
