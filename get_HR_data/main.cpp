@@ -236,12 +236,12 @@ int main(int argc, char* argv[])
                 XsOutputConfiguration rate_of_turn(XDI_RateOfTurnHR, 1000);
                 XsOutputConfiguration time(XDI_SampleTimeFine, 1000); //Contains the sample time of an output expressed in 10 kHz ticks.
                 //XsOutputConfiguration time(XDI_SampleTimeCoarse, 1000);
-                XsOutputConfiguration triggerIn1(XDI_TriggerIn1,1000);
+                //XsOutputConfiguration triggerIn1(XDI_TriggerIn1,1000);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(acc);
                 configArray.push_back(rate_of_turn);
                 configArray.push_back(time);
-                configArray.push_back(triggerIn1);
+                //configArray.push_back(triggerIn1);
                 if (!device.setOutputConfiguration(configArray))
                 {
 
@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
-            XsTriggerIndicationData triggerIndication;
+            //XsTriggerIndicationData triggerIndication;
 
             while (!_kbhit())
             {
@@ -384,12 +384,12 @@ int main(int argc, char* argv[])
                         timestamp = static_cast<unsigned int>(elapsed_seconds.count());
                     }
 
-                    if(packet.containsTriggerIndication(XDI_TriggerIn1)){
+                    /*if(packet.containsTriggerIndication(XDI_TriggerIn1)){
                         std::cout << "Trigger indication received at : " << timestamp << std::endl;
                         //here we could launch a thread that would take care of getting data from camera through firewire
                         // or we can use ROS to get the data
                         triggerIndication = packet.triggerIndication(XDI_TriggerIn1);
-                    }
+                    }*/
 
 
                     if(msg_map.find("4040") !=  msg_map.end()){
