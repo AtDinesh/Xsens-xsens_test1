@@ -164,17 +164,17 @@ int main(int argc, char* argv[])
         xsEnumerateUsbDevices(portInfoArray);
         if (!portInfoArray.size())
         {
-            std::string portName;
-            int baudRate;
+            std::string portName = "/dev/ttyUSB0";
+            int baudRate = 921600;
 #ifdef WIN32
             std::cout << "No USB Motion Tracker found." << std::endl << std::endl << "Please enter COM port name (eg. COM1): " <<
 #else
-            std::cout << "No USB Motion Tracker found." << std::endl << std::endl << "Please enter COM port name (eg. /dev/ttyUSB0): " <<
+            std::cout << "No USB Motion Tracker found." << std::endl << std::endl; //<< "Please enter COM port name (eg. /dev/ttyUSB0): " <<
 #endif
-            std::endl;
+            /*std::endl;
             std::cin >> portName;
             std::cout << "Please enter baud rate (eg. 115200): ";
-            std::cin >> baudRate;
+            std::cin >> baudRate;*/
 
             XsPortInfo portInfo(portName, XsBaud::numericToRate(baudRate));
             portInfoArray.push_back(portInfo);
