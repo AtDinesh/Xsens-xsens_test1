@@ -55,7 +55,7 @@
 #include <conio.h>
 #endif
 
-//#define DEBUG
+#define DEBUG
 
 union{ //BEWARE : THIS MAKES THE CONVERSION COMPILER DEPENDANT !!
     int num;
@@ -296,6 +296,8 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
+            XsTriggerIndicationData triggerIndication;
+
             while (!_kbhit())
             {
                 device.readDataToBuffer(data);
@@ -354,6 +356,8 @@ int main(int argc, char* argv[])
                     // string 8020 : RateOfTurn
                     // string 4040 : AccelerationHR
                     // string 8040 : RateOfTurnHR
+                    // string 4810 : XDI_TriggerIn1
+	                // string 4820 : XDI_TriggerIn2
                     Acceleration.clear();
                     Gyroscope.clear();
                     Acceleration.reserve(3); //clear leaves the vector with size 0 --> need to reallocate
@@ -368,10 +372,11 @@ int main(int argc, char* argv[])
                         timestamp = static_cast<unsigned int>(elapsed_seconds.count());
                     }
 
-                    if(packet.containsTriggerIndication()){
+                    if(packet.containsTriggerIndication(XDI_TriggerIn1)){
                         std::cout << "Trigger indication received at : " << timestamp << std::endl;
                         //here we could launch a thread that would take care of getting data from camera through firewire
                         // or we can use ROS to get the data
+                        triggerIndication = packet.triggerIndication(XDI_TriggerIn1);
                     }
 
 
