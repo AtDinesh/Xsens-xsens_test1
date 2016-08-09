@@ -269,7 +269,8 @@ int main(int argc, char* argv[])
                 std::cin >> fileName_acc;
                 fileName_gyro = fileName_acc;
                 #ifdef BENCHMARK
-                fileName_bench = fileName_acc.append("benchmark.dat");
+                fileName_bench = fileName_acc;
+                fileName_bench.append("_benchmark.dat");
                 data_file_bench.open(fileName_bench.c_str());
                 #endif
                 fileName_acc.append("_acc.dat");
@@ -321,6 +322,7 @@ int main(int argc, char* argv[])
                 std::vector<double> Acceleration(3,0), Gyroscope(3,0);
                 uint32_t timestamp=0;
                 uint32_t loop_time = 0;
+                clock_t begin = clock();
                 std::chrono::time_point<std::chrono::system_clock> start, current;
                 start = std::chrono::system_clock::now();
 
@@ -432,10 +434,9 @@ int main(int argc, char* argv[])
                     }
                     std::cout << std::flush;
                     #ifdef BENCHMARK
-                        loop_end = std::chrono::system_clock::now();
-                        std::chrono::duration<double> loop_sc_elapsed = loop_end-start;
-                        loop_time = static_cast<unsigned int>(loop_sc_elapsed.count());
-                        data_file_bench << loop_time << "\n";
+                        clock_t end = clock();
+                        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;;
+                        data_file_bench << elapsed_secs << "\n";
                     #endif
                 }
                 msgs.clear();
