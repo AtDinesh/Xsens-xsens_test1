@@ -295,6 +295,7 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
+            std::chrono::time_point<std::chrono::system_clock> loop_end;
             while (!_kbhit())
             {
                 device.readDataToBuffer(data);
@@ -302,6 +303,7 @@ int main(int argc, char* argv[])
 
                 std::vector<double> Acceleration(3,0), Gyroscope(3,0);
                 uint32_t timestamp=0;
+                uint32_t loop_time = 0;
                 std::chrono::time_point<std::chrono::system_clock> start, current;
                 start = std::chrono::system_clock::now();
 
@@ -412,6 +414,9 @@ int main(int argc, char* argv[])
                         }
                     }
                     std::cout << std::flush;
+                    loop_end = std::chrono::system_clock::now();
+                    std::chrono::duration<double> loop_sc_elapsed = loop_end-start;
+                    loop_time = static_cast<unsigned int>(loop_sc_elapsed.count());
                 }
                 msgs.clear();
                 XsTime::msleep(0);
