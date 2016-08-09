@@ -56,6 +56,7 @@
 #endif
 
 //#define DEBUG
+#define BENCHMARK
 
 union{ //BEWARE : THIS MAKES THE CONVERSION COMPILER DEPENDANT !!
     int num;
@@ -212,6 +213,10 @@ int main(int argc, char* argv[])
             std::ofstream data_file_gyro;
             std::string fileName_acc;
             std::string fileName_gyro;
+            #ifdef BENCHMARK
+                std::ofstream data_file_bench;
+                std::string fileName_bench;
+            #endif
 
             // Print information about detected MTi / MTx / MTmk4 device
             std::cout << "Device: " << device.getProductCode().toStdString() << " opened." << std::endl;
@@ -263,11 +268,16 @@ int main(int argc, char* argv[])
                 std::cout << "Enter the file name : ";
                 std::cin >> fileName_acc;
                 fileName_gyro = fileName_acc;
-                fileName_acc.append("_acc");
-                fileName_gyro.append("_gyro");
+                #ifdef BENCHMARK
+                fileName_bench = fileName_acc.append("benchmark.dat");
+                data_file_bench.open(fileName_bench.c_str());
+                #endif
+                fileName_acc.append("_acc.dat");
+                fileName_gyro.append("_gyro.dat");
 
                 data_file_acc.open(fileName_acc.c_str());
                 data_file_gyro.open(fileName_gyro.c_str());
+                
 
                 //error checking
                     if (!data_file_acc || !data_file_gyro )
@@ -279,6 +289,9 @@ int main(int argc, char* argv[])
                         //data_file << "Timestamp" << ";" <<"acc_X" << ";" << "acc_Y" << ";" << "acc_Z" << ";" << "gyro_X" << ";" << "gyro_Y" << ";" << "gyro_Z" << std::endl;
                         data_file_acc << "Timestamp(ms E-10)\t" <<"acc_X\t" << "acc_Y\t" << "acc_Z\t" << std::endl;
                         data_file_gyro << "Timestamp(ms E-10)\t" << "gyro_X\t" << "gyro_Y\t" << "gyro_Z\t" << std::endl;
+                        #ifdef BENCHMARK
+                            data_file_bench << "loop_time" << std::endl;
+                        #endif
                     }
             }
             std::cin.clear();
@@ -295,7 +308,11 @@ int main(int argc, char* argv[])
 
             XsByteArray data;
             XsMessageArray msgs;
-            std::chrono::time_point<std::chrono::system_clock> loop_end;
+
+            #ifdef BENCHMARK
+                std::chrono::time_point<std::chrono::system_clock> loop_end;
+            #endif
+
             while (!_kbhit())
             {
                 device.readDataToBuffer(data);
@@ -414,9 +431,12 @@ int main(int argc, char* argv[])
                         }
                     }
                     std::cout << std::flush;
-                    loop_end = std::chrono::system_clock::now();
-                    std::chrono::duration<double> loop_sc_elapsed = loop_end-start;
-                    loop_time = static_cast<unsigned int>(loop_sc_elapsed.count());
+                    #ifdef BENCHMARK
+                        loop_end = std::chrono::system_clock::now();
+                        std::chrono::duration<double> loop_sc_elapsed = loop_end-start;
+                        loop_time = static_cast<unsigned int>(loop_sc_elapsed.count());
+                        data_file_bench << loop_time << "\n";
+                    #endif
                 }
                 msgs.clear();
                 XsTime::msleep(0);
@@ -429,6 +449,9 @@ int main(int argc, char* argv[])
                 data_file_acc.close();
                 data_file_gyro.close();
                 std::cout << "data exported to " << fileName_acc << " and " << fileName_gyro << std::endl;
+                #ifdef BENCHMARK
+                    data_file_bench.close();
+                #endif
             }
         }
         catch (std::runtime_error const & error)
