@@ -165,6 +165,7 @@ int main(int argc, char* argv[])
 {
     //connect to STM32
     int fd,n;
+    unsigned char buf_STM32[1] = {0};
     struct termios toptions;
     fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
     if (fd != -1)
@@ -335,7 +336,7 @@ int main(int argc, char* argv[])
             {
                 device.readDataToBuffer(data);
                 device.processBufferedData(data, msgs);
-
+                read(fd, buf_STM32, 1);
                 std::vector<double> Acceleration(3,0), Gyroscope(3,0);
                 uint32_t timestamp=0;
                 uint32_t loop_time = 0;
@@ -343,6 +344,13 @@ int main(int argc, char* argv[])
                 std::chrono::time_point<std::chrono::system_clock> start, current;
                 start = std::chrono::system_clock::now();
 
+                if(buf_STM32[0] == 0x42)
+                    std::cout << "\t\tTriggering the camera\n" << std::endl;
+                /*camera has been trigger not so long ago
+                --> create a new key frame for IMU ? --> integrate following measurements.
+                --> or discard coming data from imu until buf_STM32[0] == 0x43 ? (camera trigger has stopped).
+                */
+                
                 for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
                 {
                     current = std::chrono::system_clock::now();
