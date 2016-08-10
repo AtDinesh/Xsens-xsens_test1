@@ -44,7 +44,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <unordered_map>
-#include <bitset>
 #include <sstream>
 
 #include <stdlib.h>
@@ -330,19 +329,26 @@ int main(int argc, char* argv[])
 
             #ifdef BENCHMARK
                 std::chrono::time_point<std::chrono::system_clock> loop_end;
+                clock_t end;
+                double elapsed_secs;
             #endif
+
+            std::vector<double> Acceleration(3,0), Gyroscope(3,0);
+            uint32_t timestamp=0;
+            std::chrono::time_point<std::chrono::system_clock> start, current;
+            clock_t begin;
 
             while (!_kbhit())
             {
+                begin = clock();
+                start = std::chrono::system_clock::now();
+                
+                //read data from mti
                 device.readDataToBuffer(data);
                 device.processBufferedData(data, msgs);
+
+                //read dta from stm32
                 read(fd, buf_STM32, 1);
-                std::vector<double> Acceleration(3,0), Gyroscope(3,0);
-                uint32_t timestamp=0;
-                uint32_t loop_time = 0;
-                clock_t begin = clock();
-                std::chrono::time_point<std::chrono::system_clock> start, current;
-                start = std::chrono::system_clock::now();
 
                 if(buf_STM32[0] == 0x42)
                     std::cout << "\t\tTriggering the camera\n" << std::endl;
@@ -459,8 +465,8 @@ int main(int argc, char* argv[])
                     }
                     std::cout << std::flush;
                     #ifdef BENCHMARK
-                        clock_t end = clock();
-                        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;;
+                        end = clock();
+                        elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;;
                         data_file_bench << elapsed_secs << "\n";
                     #endif
                 }
