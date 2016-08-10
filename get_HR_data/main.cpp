@@ -163,6 +163,15 @@ void extract_accgyro(std::string data_string,std::vector<double>& dest){
 
 int main(int argc, char* argv[])
 {
+    //connect to STM32
+    int fd,n;
+    struct termios toptions;
+    fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
+    if (fd != -1)
+	    printf("open ok\n");
+    else printf("open() unsuccessful\n");
+
+
     DeviceClass device;
 
     try
