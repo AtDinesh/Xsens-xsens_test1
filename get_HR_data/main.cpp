@@ -47,6 +47,14 @@
 #include <bitset>
 #include <sstream>
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+
 #include <chrono>
 
 #ifdef __GNUC__
