@@ -166,7 +166,22 @@ int main(int argc, char* argv[])
     int fd,n;
     unsigned char buf_STM32[1] = {0};
     struct termios toptions;
-    fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
+    fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+
+    //configure connection to STM32
+    tcgetattr(fd, &toptions);
+    cfsetispeed(&toptions, B1000000);
+    cfsetospeed(&toptions, B1000000);
+    toptions.c_cflag     |= (CLOCAL | CREAD);
+    toptions.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
+    toptions.c_oflag     &= ~OPOST;
+    toptions.c_cc[VMIN]  = 0;
+    toptions.c_cc[VTIME] = 0;
+    /*VMIN = 0 and VTIME = 0
+    This is a completely non-blocking read - the call is satisfied immediately directly from the driver's input queue. If data are available, it's transferred to the caller's buffer up to nbytes and returned. Otherwise zero is immediately returned to indicate "no data". We'll note that this is "polling" of the serial port, and it's almost always a bad idea. If done repeatedly, it can consume enormous amounts of processor time and is highly inefficient.
+    */ 
+    tcsetattr(fd, TCSANOW, &toptions);
+
     if (fd != -1)
 	    printf("open ok\n");
     else printf("open() unsuccessful\n");
@@ -342,7 +357,8 @@ int main(int argc, char* argv[])
             {
                 begin = clock();
                 start = std::chrono::system_clock::now();
-                
+                buf_STM32[0] = 0; //reset array
+
                 //read data from mti
                 device.readDataToBuffer(data);
                 device.processBufferedData(data, msgs);
@@ -350,12 +366,16 @@ int main(int argc, char* argv[])
                 //read dta from stm32
                 read(fd, buf_STM32, 1);
 
-                if(buf_STM32[0] == 0x42)
+                if(buf_STM32[0] == 0x42){
                     std::cout << "\t\tTriggering the camera\n" << std::endl;
+                }
                 /*camera has been trigger not so long ago
                 --> create a new key frame for IMU ? --> integrate following measurements.
                 --> or discard coming data from imu until buf_STM32[0] == 0x43 ? (camera trigger has stopped).
                 */
+                if(buf_STM32[0] == 0x43){
+                    std::cout << "\t\tCamera trigger stopped\n" << std::endl;
+                }
                 
                 for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
                 {
